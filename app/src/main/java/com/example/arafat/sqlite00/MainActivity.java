@@ -3,6 +3,7 @@ package com.example.arafat.sqlite00;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.design.widget.FloatingActionButton;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -25,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     SQLiteDatabase myDatabase;
     static int a = 10;
     private FloatingActionButton floatingActionButton;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //TextView textView = findViewById(R.id.text);
-        ListView listView = findViewById(R.id.list_view);
+        listView = findViewById(R.id.list_view);
         floatingActionButton = findViewById(R.id.floatingActionButton);
         ArrayList<String> myList = new ArrayList<>();
 
@@ -43,21 +46,29 @@ public class MainActivity extends AppCompatActivity {
             //DROP TABLE
             //myDatabase.execSQL("DROP TABLE users");
             // create table
-            myDatabase.execSQL("CREATE TABLE IF NOT EXISTS users (id INT(3), name VARCHAR,PRIMARY KEY(id))");
-            //insert data
-            insertData();
-            //myDatabase.execSQL("INSERT INTO users (name, age) VALUES ('arafat', 25)");
+            myDatabase.execSQL("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name VARCHAR)");
 
-            @SuppressLint("Recycle") Cursor cursor = myDatabase.rawQuery("SELECT * FROM users", null);
+            //insert data
+            //myDatabase.execSQL(" INSERT INTO users(name) VALUES('ARAFAT') ");
+            insertData();
+
+
+            //delete data
+            deleteData();
+
+            Cursor cursor = myDatabase.rawQuery("SELECT * FROM users", null);
 
             int nameIndex = cursor.getColumnIndex("name");
-            //int ageIndex = cursor.getColumnIndex("age");
+            int idIndex = cursor.getColumnIndex("id");
 
             cursor.moveToFirst();
             //noinspection InfiniteLoopStatement
             while (true) {
                 Log.d(TAG, "onCreate: " + cursor.getString(nameIndex));
-                myList.add(cursor.getString(nameIndex));
+                Log.d(TAG, "onCreate: " + cursor.getInt(idIndex));
+                String mId = String.valueOf(cursor.getInt(idIndex));
+                Toast.makeText(this, mId, Toast.LENGTH_SHORT).show();
+                myList.add(cursor.getString(nameIndex) + mId);
                 cursor.moveToNext();
             }
         } catch (Exception e) {
@@ -69,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //insert data
     private void insertData() {
 
         //myDatabase.execSQL(" INSERT INTO users(name) VALUES('ARAFAT') ");
@@ -85,13 +97,38 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         // do something when the user presses OK (place focus on weight input?)
                         String mText = input.getText().toString();
-                        myDatabase.execSQL(" INSERT INTO users(name) VALUES('"+mText+"') ");
-                        Log.d(TAG, "onClick: " + "data added");
+                        if (!mText.isEmpty()) {
+                            myDatabase.execSQL(" INSERT INTO users(name) VALUES('" + mText + "') ");
+                            // refresh the activity
+                            Intent intent = getIntent();
+                            finish();
+                            startActivity(intent);
+                            Log.d(TAG, "onClick: " + "data added");
+                        }
                     }
                 });
-                //alertDialog.setIcon(R.drawable.icon);
                 alertDialog.show();
             }
         });
+    }
+
+    // delete data
+
+    private void deleteData() {
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Log.d(TAG, "onItemLongClick: id is: " + id + "position is: " + position);
+                int mId = (int) id + 1;
+                myDatabase.execSQL("DELETE FROM users WHERE id = '" + mId + "' ");
+                Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+                return true;
+            }
+        });
+
     }
 }
