@@ -52,9 +52,11 @@ public class MainActivity extends AppCompatActivity {
             //myDatabase.execSQL(" INSERT INTO users(name) VALUES('ARAFAT') ");
             insertData();
 
-
             //delete data
             deleteData();
+
+            //update
+            updateData();
 
             Cursor cursor = myDatabase.rawQuery("SELECT * FROM users", null);
 
@@ -130,5 +132,35 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void updateData() {
+        final EditText input = new EditText(this);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
+
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                alertDialog.setTitle("Weight");
+                alertDialog.setMessage("You forgot to enter your weight!");
+                alertDialog.setView(input);
+                alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do something when the user presses OK (place focus on weight input?)
+                        String mText = input.getText().toString();
+                        int mId = (int) id + 1;
+                        if (!mText.isEmpty()) {
+                            myDatabase.execSQL(" UPDATE users SET name = '"+mText+"' WHERE id = '"+mId+"' ");
+                            // refresh the activity
+                            Intent intent = getIntent();
+                            finish();
+                            startActivity(intent);
+                            Log.d(TAG, "onClick: " + "data added");
+                        }
+                    }
+                });
+                alertDialog.show();
+            }
+        });
     }
 }
